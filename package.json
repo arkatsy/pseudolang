@@ -1,0 +1,17 @@
+{
+  "name": "@arkatsy/pseudolang",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arkatsy/pseudolang.git"
+  },
+  "author": "arkatsy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arkatsy/pseudolang/issues"
+  },
+  "homepage": "https://github.com/arkatsy/pseudolang#readme"
+}
