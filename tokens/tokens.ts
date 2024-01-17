@@ -11,6 +11,13 @@ export const TOKENS = Object.freeze({
   DO: "DO",
   PRINT: "PRINT",
   INPUT: "INPUT",
+  CALL: "CALL",
+  FUNCTION: "FUNCTION",
+  RETURN: "RETURN",
+  ENDFUNCTION: "ENDFUNCTION",
+  TRUE: "TRUE",
+  FALSE: "FALSE",
+  NULL: "NULL",
   PLUS: "+",
   MINUS: "-",
   MUL: "*",
@@ -56,6 +63,13 @@ export enum TokenType {
   INPUT = "INPUT",
   PLUS = "PLUS",
   MINUS = "MINUS",
+  CALL = "CALL",
+  FUNCTION = "FUNCTION",
+  RETURN = "RETURN",
+  ENDFUNCTION = "ENDFUNCTION",
+  TRUE = "TRUE",
+  FALSE = "FALSE",
+  NULL = "NULL",
   MUL = "MUL",
   DIV = "DIV",
   MOD = "MOD",
@@ -84,6 +98,7 @@ export enum TokenType {
   NUMBER = "NUMBER",
 }
 
+// TODO: Map tokens to token types instead of using a switch statement
 export const lookupIdentifier = (identifier: string) => {
   switch (identifier) {
     case TOKENS.VAR:
@@ -116,6 +131,20 @@ export const lookupIdentifier = (identifier: string) => {
       return TokenType.THEN;
     case TOKENS.ENDIF:
       return TokenType.ENDIF;
+    case TOKENS.CALL:
+      return TokenType.CALL;
+    case TOKENS.FUNCTION:
+      return TokenType.FUNCTION;
+    case TOKENS.RETURN:
+      return TokenType.RETURN;
+    case TOKENS.ENDFUNCTION:
+      return TokenType.ENDFUNCTION;
+    case TOKENS.TRUE:
+      return TokenType.TRUE;
+    case TOKENS.FALSE:
+      return TokenType.FALSE;
+    case TOKENS.NULL:
+      return TokenType.NULL;
     default:
       return null;
   }

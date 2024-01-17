@@ -66,9 +66,9 @@ export default class Lexer {
       this.pos.column--;
     }
     this.debugPos(
-      `Char ${JSON.stringify(this.char)} has been read. Retreating position to line ${this.pos.line}, column ${
-        this.pos.column
-      } (cursor: ${this.cursor})`
+      `Char ${JSON.stringify(this.char)} has been read. Retreating position to line ${
+        this.pos.line
+      }, column ${this.pos.column} (cursor: ${this.cursor})`
     );
   }
 
@@ -80,18 +80,21 @@ export default class Lexer {
       if (token.type == TokenType.EOF) this.warn("Source is empty");
 
       while (token.type !== TokenType.EOF) {
-        // ignore whitespace tokens
-        if (token.type !== TokenType.NEW_LINE && token.type !== TokenType.SPACE) {
+        // TODO: Currently we are ignoring whitespace tokens, but what's the point of
+        // creating them in the first place.
+        const isTokenWhitespace = token.type === TokenType.NEW_LINE || token.type === TokenType.SPACE || token.type === TokenType.TAB;
+        if (!isTokenWhitespace) {
           tokens.push(token);
         } else {
           this.debugTokens(token);
         }
         token = this.nextToken();
       }
+      return tokens;
     } catch (e) {
       this.error(e);
+      return null;
     }
-    return tokens;
   }
 
   nextToken() {
@@ -112,6 +115,11 @@ export default class Lexer {
           this.debugTokens({ type: TokenType.ASSIGN, literal });
           token = { type: TokenType.ASSIGN, literal };
         }
+        break;
+      }
+      case TOKENS.COMMA: {
+        this.debugTokens({ type: TokenType.COMMA, literal: this.char });
+        token = { type: TokenType.COMMA, literal: this.char };
         break;
       }
       case TOKENS.LT: {
@@ -224,7 +232,7 @@ export default class Lexer {
           break;
         }
 
-        throw `Unknown token: ${this.char} at line ${this.pos.line}, column ${this.pos.column} (cursor: ${this.cursor})`
+        throw `Unknown token: "${this.char}" at line ${this.pos.line}, column ${this.pos.column} (cursor: ${this.cursor})`;
       }
     }
 
