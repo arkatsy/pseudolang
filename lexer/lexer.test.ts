@@ -1,8 +1,9 @@
-import { TOKENS, TokenType, type Token } from "tokens/tokens";
+import { TokenType, type BaseToken } from "tokens/tokens";
 import Lexer from "./lexer";
 import { test, expect } from "vitest";
 
-test.each<[string, Token[]]>([
+
+test.each<[string, BaseToken[]]>([
   ["=", [{ type: TokenType.ASSIGN, literal: "=" }]],
   ["==", [{ type: TokenType.EQ, literal: "==" }]],
   ["+", [{ type: TokenType.PLUS, literal: "+" }]],
@@ -151,9 +152,35 @@ test.each<[string, Token[]]>([
     { type: TokenType.IDENT, literal: "A" },
     { type: TokenType.ENDIF, literal: "ENDIF" },
   ]],
-])("Lexer.lex('%s') should return %s", (source, expected) => {
+  ["NULL", [{ type: TokenType.NULL, literal: "NULL" }]],
+  ["TRUE", [{ type: TokenType.TRUE, literal: "TRUE" }]],
+  ["FALSE", [{ type: TokenType.FALSE, literal: "FALSE" }]],
+  ["FUNCTION", [{ type: TokenType.FUNCTION, literal: "FUNCTION" }]],
+  ["ENDFUNCTION", [{ type: TokenType.ENDFUNCTION, literal: "ENDFUNCTION" }]],
+  ["RETURN", [{ type: TokenType.RETURN, literal: "RETURN" }]],
+  ["CALL", [{ type: TokenType.CALL, literal: "CALL" }]],
+  // prettier-ignore
+  ["FUNCTION add(a, b) RETURN a + b ENDFUNCTION", [
+    { type: TokenType.FUNCTION, literal: "FUNCTION" },
+    { type: TokenType.IDENT, literal: "add" },
+    { type: TokenType.LPAREN, literal: "(" },
+    { type: TokenType.IDENT, literal: "a" },
+    { type: TokenType.COMMA, literal: "," },
+    { type: TokenType.IDENT, literal: "b" },
+    { type: TokenType.RPAREN, literal: ")" },
+    { type: TokenType.RETURN, literal: "RETURN" },
+    { type: TokenType.IDENT, literal: "a" },
+    { type: TokenType.PLUS, literal: "+" },
+    { type: TokenType.IDENT, literal: "b" },
+    { type: TokenType.ENDFUNCTION, literal: "ENDFUNCTION" },
+  ]],
+])("Lexer.lex('%s') should return the correct tokens %s", (source, expected) => {
   const lexer = new Lexer(source);
   const tokens = lexer.lex();
 
-  expect(tokens).toStrictEqual(expected);
+  tokens.forEach((token, index) => {
+    expect(token).toStrictEqual(expect.objectContaining(expected[index]));
+  });
 });
+
+// TODO: Add tests for the position of the tokens

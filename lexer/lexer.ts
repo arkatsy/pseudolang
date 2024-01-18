@@ -1,4 +1,4 @@
-import { TOKENS, TokenType, type Token, lookupIdentifier } from "tokens/tokens";
+import { TOKENS, TokenType, type Token, lookupIdentifier, type BaseToken } from "tokens/tokens";
 import chalk from "chalk";
 
 type LexerOptions = {
@@ -6,7 +6,7 @@ type LexerOptions = {
   debugTokens?: boolean;
 };
 
-// TODO: Add position tracking to tokens
+// TODO: Should the `start` and `end` positions in the tokens ignore whitespace such as \n, \t, and space?
 export default class Lexer {
   source: string;
   cursor: number;
@@ -30,19 +30,46 @@ export default class Lexer {
     this.DEBUG_TOKENS = opts.debugTokens ?? false;
   }
 
+  // TODO: Improve logging & Error handling. Right now it's logs the errors.
   log = (...msg: any) => console.log(chalk.greenBright(`[Lexer] [LOG]`), ...msg);
   warn = (...msg: any) => console.warn(chalk.yellowBright(`[Lexer] [WARNING]`), ...msg);
   error = (...msg: any) => console.error(chalk.redBright(`[Lexer] [ERROR]`), ...msg);
 
   debug = (...msg: any) => console.debug(chalk.blueBright(`[Lexer] [DEBUG]`), ...msg);
   debugPos = (...msg: any) => this.DEBUG_POSITION && this.debug(...msg);
-  debugTokens = (token: Token) =>
+  debugTokens = (token: BaseToken) =>
     this.DEBUG_TOKENS &&
     this.debug(
       `Found token of type ${token.type} (${JSON.stringify(token.literal)}) at line ${
         this.pos.line
       }, column ${this.pos.column} (cursor: ${this.cursor})`
     );
+
+  lex() {
+    let tokens: Token[] = [];
+
+    try {
+      let token = this.nextToken();
+      if (token.type == TokenType.EOF) this.warn("Source is empty");
+
+      while (token.type !== TokenType.EOF) {
+        // TODO: Currently we are ignoring whitespace tokens, but what's the point of
+        // creating them in the first place.
+        const isTokenWhitespace =
+          token.type === TokenType.NEW_LINE || token.type === TokenType.SPACE || token.type === TokenType.TAB;
+        if (!isTokenWhitespace) {
+          tokens.push(token);
+        } else {
+          this.debugTokens(token);
+        }
+        token = this.nextToken();
+      }
+    } catch (e) {
+      this.error(e);
+    }
+
+    return tokens;
+  }
 
   advancePos() {
     if (this.char === TOKENS.NEW_LINE) {
@@ -66,32 +93,10 @@ export default class Lexer {
       this.pos.column--;
     }
     this.debugPos(
-      `Char ${JSON.stringify(this.char)} has been read. Retreating position to line ${this.pos.line}, column ${
-        this.pos.column
-      } (cursor: ${this.cursor})`
+      `Char ${JSON.stringify(this.char)} has been read. Retreating position to line ${
+        this.pos.line
+      }, column ${this.pos.column} (cursor: ${this.cursor})`
     );
-  }
-
-  lex() {
-    const tokens: Token[] = [];
-
-    try {
-      let token = this.nextToken();
-      if (token.type == TokenType.EOF) this.warn("Source is empty");
-
-      while (token.type !== TokenType.EOF) {
-        // ignore whitespace tokens
-        if (token.type !== TokenType.NEW_LINE && token.type !== TokenType.SPACE) {
-          tokens.push(token);
-        } else {
-          this.debugTokens(token);
-        }
-        token = this.nextToken();
-      }
-    } catch (e) {
-      this.error(e);
-    }
-    return tokens;
   }
 
   nextToken() {
@@ -100,6 +105,7 @@ export default class Lexer {
       `Reading next token at line ${this.pos.line}, column ${this.pos.column} (cursor: ${this.cursor})`
     );
 
+    let start = this.cursor;
     switch (this.char) {
       case TOKENS.ASSIGN: {
         let literal = this.char;
@@ -107,11 +113,16 @@ export default class Lexer {
           literal += this.readChar();
 
           this.debugTokens({ type: TokenType.EQ, literal });
-          token = { type: TokenType.EQ, literal };
+          token = { type: TokenType.EQ, literal, start, end: this.cursor };
         } else {
           this.debugTokens({ type: TokenType.ASSIGN, literal });
-          token = { type: TokenType.ASSIGN, literal };
+          token = { type: TokenType.ASSIGN, literal, start, end: this.cursor };
         }
+        break;
+      }
+      case TOKENS.COMMA: {
+        this.debugTokens({ type: TokenType.COMMA, literal: this.char });
+        token = { type: TokenType.COMMA, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.LT: {
@@ -120,10 +131,10 @@ export default class Lexer {
           literal += this.readChar();
 
           this.debugTokens({ type: TokenType.LTE, literal });
-          token = { type: TokenType.LTE, literal };
+          token = { type: TokenType.LTE, literal, start, end: this.cursor };
         } else {
           this.debugTokens({ type: TokenType.LT, literal });
-          token = { type: TokenType.LT, literal };
+          token = { type: TokenType.LT, literal, start, end: this.cursor };
         }
         break;
       }
@@ -133,69 +144,70 @@ export default class Lexer {
           literal += this.readChar();
 
           this.debugTokens({ type: TokenType.GTE, literal });
-          token = { type: TokenType.GTE, literal };
+          token = { type: TokenType.GTE, literal, start, end: this.cursor };
         } else {
           this.debugTokens({ type: TokenType.GT, literal });
-          token = { type: TokenType.GT, literal };
+          token = { type: TokenType.GT, literal, start, end: this.cursor };
         }
         break;
       }
       case TOKENS.PLUS: {
         this.debugTokens({ type: TokenType.PLUS, literal: this.char });
-        token = { type: TokenType.PLUS, literal: this.char };
+        token = { type: TokenType.PLUS, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.MINUS: {
         this.debugTokens({ type: TokenType.MINUS, literal: this.char });
-        token = { type: TokenType.MINUS, literal: this.char };
+        token = { type: TokenType.MINUS, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.MUL: {
         this.debugTokens({ type: TokenType.MUL, literal: this.char });
-        token = { type: TokenType.MUL, literal: this.char };
+        token = { type: TokenType.MUL, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.DIV: {
         this.debugTokens({ type: TokenType.DIV, literal: this.char });
-        token = { type: TokenType.DIV, literal: this.char };
+        token = { type: TokenType.DIV, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.MOD: {
         this.debugTokens({ type: TokenType.MOD, literal: this.char });
-        token = { type: TokenType.MOD, literal: this.char };
+        token = { type: TokenType.MOD, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.NEW_LINE: {
         this.debugTokens({ type: TokenType.NEW_LINE, literal: this.char });
-        token = { type: TokenType.NEW_LINE, literal: this.char };
+        token = { type: TokenType.NEW_LINE, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.SPACE: {
         this.debugTokens({ type: TokenType.SPACE, literal: this.char });
-        token = { type: TokenType.SPACE, literal: this.char };
+        token = { type: TokenType.SPACE, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.LPAREN: {
         this.debugTokens({ type: TokenType.LPAREN, literal: this.char });
-        token = { type: TokenType.LPAREN, literal: this.char };
+        token = { type: TokenType.LPAREN, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.RPAREN: {
         this.debugTokens({ type: TokenType.RPAREN, literal: this.char });
-        token = { type: TokenType.RPAREN, literal: this.char };
+        token = { type: TokenType.RPAREN, literal: this.char, start, end: this.cursor };
         break;
       }
       case TOKENS.EOF: {
         this.debugTokens({ type: TokenType.EOF, literal: "" });
-        token = { type: TokenType.EOF, literal: "" };
+        token = { type: TokenType.EOF, literal: "", start, end: this.cursor };
         break;
       }
       default: {
         if (Lexer.isLetter(this.char)) {
-          let literal = this.readChar(); // eat the first letter
+          let literal = this.readChar();
           while (Lexer.isLetter(this.char)) {
             literal += this.readChar();
           }
+          const end = this.cursor - 1;
 
           let type = lookupIdentifier(literal); // returns null if not a keyword
           if (!type) {
@@ -203,7 +215,7 @@ export default class Lexer {
           }
 
           this.debugTokens({ type, literal });
-          token = { type, literal };
+          token = { type, literal, start, end };
 
           // `this.char` points to the next character and since after
           // the switch we are advancing, we end up skipping a character.
@@ -212,19 +224,20 @@ export default class Lexer {
 
           break;
         } else if (Lexer.isDigit(this.char)) {
-          let literal = this.readChar(); // eat the first digit
+          let literal = this.readChar();
           while (Lexer.isDigit(this.char) || this.char === ".") {
             literal += this.readChar();
           }
+          const end = this.cursor - 1;
 
           this.debugTokens({ type: TokenType.NUMBER, literal });
-          token = { type: TokenType.NUMBER, literal };
+          token = { type: TokenType.NUMBER, literal, start, end };
 
           this.retreat();
           break;
         }
 
-        throw `Unknown token: ${this.char} at line ${this.pos.line}, column ${this.pos.column} (cursor: ${this.cursor})`
+        throw `Unknown token: "${this.char}" at line ${this.pos.line}, column ${this.pos.column} (cursor: ${this.cursor})`;
       }
     }
 
