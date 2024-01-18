@@ -150,7 +150,12 @@ export const lookupIdentifier = (identifier: string) => {
   }
 };
 
-export type Token = {
+export type BaseToken = {
   type: TokenType;
   literal: string;
+};
+
+export type Token = BaseToken & {
+  start: number;
+  end: number;
 };
