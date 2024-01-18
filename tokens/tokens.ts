@@ -154,6 +154,10 @@ export const lookupIdentifier = (identifier: string) => {
   }
 };
 
+export function createToken(type: TokenType, literal: string, start: number, end: number): Token {
+  return { type, literal, start, end };
+}
+
 export type BaseToken = {
   type: TokenType;
   literal: string;

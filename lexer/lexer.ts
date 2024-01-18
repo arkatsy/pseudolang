@@ -1,4 +1,4 @@
-import { TOKENS, TokenType, type Token, lookupIdentifier, type BaseToken } from "tokens/tokens";
+import { TOKENS, TokenType, type Token, lookupIdentifier, type BaseToken, createToken } from "tokens/tokens";
 import chalk from "chalk";
 
 type LexerOptions = {
@@ -113,16 +113,16 @@ export default class Lexer {
           literal += this.readChar();
 
           this.debugTokens({ type: TokenType.EQ, literal });
-          token = { type: TokenType.EQ, literal, start, end: this.cursor };
+          token = createToken(TokenType.EQ, literal, start, this.cursor);
         } else {
           this.debugTokens({ type: TokenType.ASSIGN, literal });
-          token = { type: TokenType.ASSIGN, literal, start, end: this.cursor };
+          token = createToken(TokenType.ASSIGN, literal, start, this.cursor);
         }
         break;
       }
       case TOKENS.COMMA: {
         this.debugTokens({ type: TokenType.COMMA, literal: this.char });
-        token = { type: TokenType.COMMA, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.COMMA, this.char, start, this.cursor);
         break;
       }
       case TOKENS.LT: {
@@ -131,10 +131,10 @@ export default class Lexer {
           literal += this.readChar();
 
           this.debugTokens({ type: TokenType.LTE, literal });
-          token = { type: TokenType.LTE, literal, start, end: this.cursor };
+          token = createToken(TokenType.LTE, literal, start, this.cursor);
         } else {
           this.debugTokens({ type: TokenType.LT, literal });
-          token = { type: TokenType.LT, literal, start, end: this.cursor };
+          token = createToken(TokenType.LT, literal, start, this.cursor);
         }
         break;
       }
@@ -144,61 +144,61 @@ export default class Lexer {
           literal += this.readChar();
 
           this.debugTokens({ type: TokenType.GTE, literal });
-          token = { type: TokenType.GTE, literal, start, end: this.cursor };
+          token = createToken(TokenType.GTE, literal, start, this.cursor);
         } else {
           this.debugTokens({ type: TokenType.GT, literal });
-          token = { type: TokenType.GT, literal, start, end: this.cursor };
+          token = createToken(TokenType.GT, literal, start, this.cursor);
         }
         break;
       }
       case TOKENS.PLUS: {
         this.debugTokens({ type: TokenType.PLUS, literal: this.char });
-        token = { type: TokenType.PLUS, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.PLUS, this.char, start, this.cursor);
         break;
       }
       case TOKENS.MINUS: {
         this.debugTokens({ type: TokenType.MINUS, literal: this.char });
-        token = { type: TokenType.MINUS, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.MINUS, this.char, start, this.cursor);
         break;
       }
       case TOKENS.MUL: {
         this.debugTokens({ type: TokenType.MUL, literal: this.char });
-        token = { type: TokenType.MUL, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.MUL, this.char, start, this.cursor);
         break;
       }
       case TOKENS.DIV: {
         this.debugTokens({ type: TokenType.DIV, literal: this.char });
-        token = { type: TokenType.DIV, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.DIV, this.char, start, this.cursor);
         break;
       }
       case TOKENS.MOD: {
         this.debugTokens({ type: TokenType.MOD, literal: this.char });
-        token = { type: TokenType.MOD, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.MOD, this.char, start, this.cursor);
         break;
       }
       case TOKENS.NEW_LINE: {
         this.debugTokens({ type: TokenType.NEW_LINE, literal: this.char });
-        token = { type: TokenType.NEW_LINE, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.NEW_LINE, this.char, start, this.cursor);
         break;
       }
       case TOKENS.SPACE: {
         this.debugTokens({ type: TokenType.SPACE, literal: this.char });
-        token = { type: TokenType.SPACE, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.SPACE, this.char, start, this.cursor);
         break;
       }
       case TOKENS.LPAREN: {
         this.debugTokens({ type: TokenType.LPAREN, literal: this.char });
-        token = { type: TokenType.LPAREN, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.LPAREN, this.char, start, this.cursor);
         break;
       }
       case TOKENS.RPAREN: {
         this.debugTokens({ type: TokenType.RPAREN, literal: this.char });
-        token = { type: TokenType.RPAREN, literal: this.char, start, end: this.cursor };
+        token = createToken(TokenType.RPAREN, this.char, start, this.cursor);
         break;
       }
       case TOKENS.EOF: {
         this.debugTokens({ type: TokenType.EOF, literal: "" });
-        token = { type: TokenType.EOF, literal: "", start, end: this.cursor };
+        token = createToken(TokenType.EOF, "", start, this.cursor);
         break;
       }
       default: {
@@ -207,7 +207,6 @@ export default class Lexer {
           while (Lexer.isLetter(this.char)) {
             literal += this.readChar();
           }
-          const end = this.cursor - 1;
 
           let type = lookupIdentifier(literal); // returns null if not a keyword
           if (!type) {
@@ -215,7 +214,7 @@ export default class Lexer {
           }
 
           this.debugTokens({ type, literal });
-          token = { type, literal, start, end };
+          token = createToken(type, literal, start, this.cursor - 1);
 
           // `this.char` points to the next character and since after
           // the switch we are advancing, we end up skipping a character.
@@ -232,10 +231,8 @@ export default class Lexer {
           if (Lexer.isLetter(this.char)) {
             throw `Unexpected sequence of characters: "${literal}${this.char}" at line ${this.pos.line}, column ${this.pos.column} (cursor: ${this.cursor})`;
           }
-          const end = this.cursor - 1;
-
           this.debugTokens({ type: TokenType.NUMBER, literal });
-          token = { type: TokenType.NUMBER, literal, start, end };
+          token = createToken(TokenType.NUMBER, literal, start, this.cursor - 1);
 
           this.retreat();
           break;
