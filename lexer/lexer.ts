@@ -228,6 +228,10 @@ export default class Lexer {
           while (Lexer.isDigit(this.char) || this.char === ".") {
             literal += this.readChar();
           }
+
+          if (Lexer.isLetter(this.char)) {
+            throw `Unexpected sequence of characters: "${literal}${this.char}" at line ${this.pos.line}, column ${this.pos.column} (cursor: ${this.cursor})`;
+          }
           const end = this.cursor - 1;
 
           this.debugTokens({ type: TokenType.NUMBER, literal });

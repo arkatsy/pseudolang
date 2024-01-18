@@ -13,6 +13,7 @@ export const TOKENS = Object.freeze({
   INPUT: "INPUT",
   CALL: "CALL",
   FUNCTION: "FUNCTION",
+  STEP: "STEP",
   RETURN: "RETURN",
   ENDFUNCTION: "ENDFUNCTION",
   TRUE: "TRUE",
@@ -65,6 +66,7 @@ export enum TokenType {
   MINUS = "MINUS",
   CALL = "CALL",
   FUNCTION = "FUNCTION",
+  STEP = "STEP",
   RETURN = "RETURN",
   ENDFUNCTION = "ENDFUNCTION",
   TRUE = "TRUE",
@@ -135,6 +137,8 @@ export const lookupIdentifier = (identifier: string) => {
       return TokenType.CALL;
     case TOKENS.FUNCTION:
       return TokenType.FUNCTION;
+    case TOKENS.STEP:
+      return TokenType.STEP;
     case TOKENS.RETURN:
       return TokenType.RETURN;
     case TOKENS.ENDFUNCTION:
