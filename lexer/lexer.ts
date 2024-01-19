@@ -18,7 +18,7 @@ export default class Lexer {
   DEBUG_POSITION: boolean;
   DEBUG_TOKENS: boolean;
 
-  constructor(source: string, opts: LexerOptions = {}) {
+  constructor(source: string, opts: LexerOptions | boolean = false) {
     this.source = source;
     this.cursor = 0;
     this.char = source[0];
@@ -26,11 +26,12 @@ export default class Lexer {
       line: 1,
       column: 1,
     };
-    this.DEBUG_POSITION = opts.debugPos ?? false;
-    this.DEBUG_TOKENS = opts.debugTokens ?? false;
+    const isDebugOptsBool = typeof opts === "boolean";
+    this.DEBUG_POSITION = isDebugOptsBool ? opts : opts.debugPos ?? false;
+    this.DEBUG_TOKENS = isDebugOptsBool ? opts : opts.debugTokens ?? false;
   }
 
-  // TODO: Improve logging & Error handling. Right now it's logs the errors.
+  // TODO: Improve logging & Error handling.
   log = (...msg: any) => console.log(chalk.greenBright(`[Lexer] [LOG]`), ...msg);
   warn = (...msg: any) => console.warn(chalk.yellowBright(`[Lexer] [WARNING]`), ...msg);
   error = (...msg: any) => console.error(chalk.redBright(`[Lexer] [ERROR]`), ...msg);
@@ -50,7 +51,7 @@ export default class Lexer {
 
     try {
       let token = this.nextToken();
-      if (token.type == TokenType.EOF) this.warn("Source is empty");
+      // if (token.type == TokenType.EOF) this.warn("Source is empty");
 
       while (token.type !== TokenType.EOF) {
         // TODO: Currently we are ignoring whitespace tokens, but what's the point of
@@ -66,6 +67,7 @@ export default class Lexer {
       }
     } catch (e) {
       this.error(e);
+      process.exit(1);
     }
 
     return tokens;
@@ -111,7 +113,6 @@ export default class Lexer {
         let literal = this.char;
         if (this.peekChar() === TOKENS.ASSIGN) {
           literal += this.readChar();
-
           this.debugTokens({ type: TokenType.EQ, literal });
           token = createToken(TokenType.EQ, literal, start, this.cursor);
         } else {
@@ -129,7 +130,6 @@ export default class Lexer {
         let literal = this.char;
         if (this.peekChar() === TOKENS.EQ) {
           literal += this.readChar();
-
           this.debugTokens({ type: TokenType.LTE, literal });
           token = createToken(TokenType.LTE, literal, start, this.cursor);
         } else {
@@ -142,7 +142,6 @@ export default class Lexer {
         let literal = this.char;
         if (this.peekChar() === TOKENS.EQ) {
           literal += this.readChar();
-
           this.debugTokens({ type: TokenType.GTE, literal });
           token = createToken(TokenType.GTE, literal, start, this.cursor);
         } else {

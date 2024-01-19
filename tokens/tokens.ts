@@ -6,6 +6,7 @@ export const TOKENS = Object.freeze({
   THEN: "THEN",
   ENDIF: "ENDIF",
   WHILE: "WHILE",
+  ELIF: "ELIF",
   FOR: "FOR",
   TO: "TO",
   DO: "DO",
@@ -15,6 +16,7 @@ export const TOKENS = Object.freeze({
   FUNCTION: "FUNCTION",
   STEP: "STEP",
   RETURN: "RETURN",
+  ENDWHILE: "ENDWHILE",
   ENDFUNCTION: "ENDFUNCTION",
   TRUE: "TRUE",
   FALSE: "FALSE",
@@ -58,6 +60,7 @@ export enum TokenType {
   ENDIF = "ENDIF",
   WHILE = "WHILE",
   FOR = "FOR",
+  ELIF = "ELIF",
   TO = "TO",
   DO = "DO",
   PRINT = "PRINT",
@@ -69,6 +72,7 @@ export enum TokenType {
   STEP = "STEP",
   RETURN = "RETURN",
   ENDFUNCTION = "ENDFUNCTION",
+  ENDWHILE = "ENDWHILE",
   TRUE = "TRUE",
   FALSE = "FALSE",
   NULL = "NULL",
@@ -111,6 +115,8 @@ export const lookupIdentifier = (identifier: string) => {
       return TokenType.IF;
     case TOKENS.ELSE:
       return TokenType.ELSE;
+    case TOKENS.ELIF:
+      return TokenType.ELIF;
     case TOKENS.WHILE:
       return TokenType.WHILE;
     case TOKENS.FOR:
@@ -149,6 +155,8 @@ export const lookupIdentifier = (identifier: string) => {
       return TokenType.FALSE;
     case TOKENS.NULL:
       return TokenType.NULL;
+    case TOKENS.ENDWHILE:
+      return TokenType.ENDWHILE;
     default:
       return null;
   }
@@ -163,7 +171,9 @@ export type BaseToken = {
   literal: string;
 };
 
-export type Token = BaseToken & {
+export type TokenPosition = {
   start: number;
   end: number;
 };
+
+export type Token = BaseToken & TokenPosition;

@@ -8,7 +8,7 @@
 - `IF`: if statement
 - `THEN`: if statement body
 - `ELSE`: else statement body
-- `ELSE IF`: else if statement body
+- `ELIF`: else if statement body
 - `ENDIF`: end of if statement
 - `AND`: and operator
 - `OR`: or operator
@@ -61,7 +61,7 @@ PRINT Z
 // IF statements
 IF Z > 10 THEN
     PRINT "Z is greater than 10"
-ELSE IF Z == 10 THEN
+ELIF Z == 10 THEN
     PRINT "Z is equal to 10"
 ELSE
     PRINT "Z is less than 10"

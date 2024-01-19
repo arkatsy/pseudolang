@@ -1,7 +1,6 @@
-import { TokenType, type BaseToken } from "tokens/tokens";
+import { TokenType, type BaseToken, TokenPosition, Token } from "tokens/tokens";
 import Lexer from "./lexer";
 import { test, expect } from "vitest";
-
 
 test.each<[string, BaseToken[]]>([
   ["=", [{ type: TokenType.ASSIGN, literal: "=" }]],
@@ -15,11 +14,16 @@ test.each<[string, BaseToken[]]>([
   ["CONST", [{ type: TokenType.CONST, literal: "CONST" }]],
   ["IF", [{ type: TokenType.IF, literal: "IF" }]],
   // prettier-ignore
-  ["ELSE IF", [{ type: TokenType.ELSE, literal: "ELSE" }, { type: TokenType.IF, literal: "IF" }]],
+  ["ELIF", [{ type: TokenType.ELIF, literal: "ELIF" }, { type: TokenType.ELIF, literal: "ELIF" }]],
   ["ELSE", [{ type: TokenType.ELSE, literal: "ELSE" }]],
   ["WHILE", [{ type: TokenType.WHILE, literal: "WHILE" }]],
   ["FOR", [{ type: TokenType.FOR, literal: "FOR" }]],
   ["TO", [{ type: TokenType.TO, literal: "TO" }]],
+  ["STEP", [{ type: TokenType.STEP, literal: "STEP" }]],
+  ["DO", [{ type: TokenType.DO, literal: "DO" }]],
+  ["ENDIF", [{ type: TokenType.ENDIF, literal: "ENDIF" }]],
+  ["ENDFUNCTION", [{ type: TokenType.ENDFUNCTION, literal: "ENDFUNCTION" }]],
+  ["ENDWHILE", [{ type: TokenType.ENDWHILE, literal: "ENDWHILE" }]],
   // prettier-ignore
   ["VAR X = 11", [
     { type: TokenType.VAR, literal: "VAR" },
@@ -174,7 +178,7 @@ test.each<[string, BaseToken[]]>([
     { type: TokenType.IDENT, literal: "b" },
     { type: TokenType.ENDFUNCTION, literal: "ENDFUNCTION" },
   ]],
-])("Lexer.lex('%s') should return the correct tokens %s", (source, expected) => {
+])("lex('%s') should return the correct tokens %s", (source, expected) => {
   const lexer = new Lexer(source);
   const tokens = lexer.lex();
 
@@ -183,4 +187,36 @@ test.each<[string, BaseToken[]]>([
   });
 });
 
-// TODO: Add tests for the position of the tokens
+type TokenWithPositionAndType = TokenPosition & { type: TokenType };
+
+test.each<[string, TokenWithPositionAndType[]]>([
+  // prettier-ignore
+  ["VAR X = 1", [
+  {type: TokenType.VAR, start: 0, end: 2},
+  {type: TokenType.IDENT, start: 4, end: 4},
+  {type: TokenType.ASSIGN, start: 6, end: 6},
+  {type: TokenType.NUMBER, start: 8, end: 8},
+]],
+  // prettier-ignore
+  [`FUNCTION add(a, b) RETURN a + b ENDFUNCTION`, [
+    { type: TokenType.FUNCTION, start: 0, end: 7 },
+    { type: TokenType.IDENT, start: 9, end: 11 },
+    { type: TokenType.LPAREN, start: 12, end: 12 },
+    { type: TokenType.IDENT, start: 13, end: 13 },
+    { type: TokenType.COMMA, start: 14, end: 14 },
+    { type: TokenType.IDENT, start: 16, end: 16 },
+    { type: TokenType.RPAREN, start: 17, end: 17 },
+    { type: TokenType.RETURN, start: 19, end: 24 },
+    { type: TokenType.IDENT, start: 26, end: 26 },
+    { type: TokenType.PLUS, start: 28, end: 28 },
+    { type: TokenType.IDENT, start: 30, end: 30 },
+    { type: TokenType.ENDFUNCTION, start: 32, end: 42 },
+    ]],
+])("lex('%s') should return the correct tokens %s", (source, expected) => {
+  const lexer = new Lexer(source);
+  const tokens = lexer.lex();
+
+  tokens.forEach((token, index) => {
+    expect(token).toStrictEqual(expect.objectContaining(expected[index]));
+  });
+});
